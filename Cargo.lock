@@ -3,13 +3,6 @@
 version = 3
 
 [[package]]
-name = "rust-web-api"
-version = "0.1.0"
-dependencies = [
- "rocket",
-]
-
-[[package]]
 name = "ansi_term"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -891,6 +884,13 @@ dependencies = [
  "time",
  "tokio",
  "uncased",
+]
+
+[[package]]
+name = "rust-web-api"
+version = "0.1.0"
+dependencies = [
+ "rocket",
 ]
 
 [[package]]
