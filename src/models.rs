@@ -3,7 +3,6 @@ use super::schema::users::dsl::users as all_users;
 use diesel;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
-// this is to get users from the database
 #[derive(Serialize, Queryable)]
 pub struct User {
     pub id: i32,
@@ -12,12 +11,6 @@ pub struct User {
     pub first_name: String,
 }
 
-// decode request data
-#[derive(Deserialize)]
-pub struct UserData {
-    pub username: String,
-}
-// this is to insert users to database
 #[derive(Serialize, Deserialize, Insertable)]
 #[table_name = "users"]
 pub struct NewUser {
@@ -34,16 +27,15 @@ impl User {
             .expect("error!")
     }
 
-    pub fn insert_user(user: NewUser, conn: &PgConnection) -> bool {
+    pub fn insert_user(user: NewUser, conn: &PgConnection) -> QueryResult<User> {
         diesel::insert_into(users::table)
             .values(&user)
-            .execute(conn)
-            .is_ok()
+            .get_result(conn)
     }
 
-    pub fn get_user_by_username(user: UserData, conn: &PgConnection) -> Vec<User> {
+    pub fn get_user_by_id(id: i32, conn: &PgConnection) -> Vec<User> {
         all_users
-            .filter(users::username.eq(user.username))
+            .filter(users::id.eq(id))
             .load::<User>(conn)
             .expect("error!")
     }

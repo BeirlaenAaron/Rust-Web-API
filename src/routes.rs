@@ -1,10 +1,13 @@
 use super::db::Conn as DbConn;
 use super::models::{NewUser, User};
-use crate::models::UserData;
 use rocket_contrib::json::Json;
 use serde_json::Value;
+use diesel::result::Error;
+use rocket::http::Status;
+use rocket::response::status;
 
-#[post("/users", format = "application/json")]
+
+#[get("/users")]
 pub fn get_all(conn: DbConn) -> Json<Value> {
     let users = User::get_all_users(&conn);
     Json(json!({
@@ -13,18 +16,31 @@ pub fn get_all(conn: DbConn) -> Json<Value> {
     }))
 }
 
-#[post("/newUser", format = "application/json", data = "<new_user>")]
-pub fn new_user(conn: DbConn, new_user: Json<NewUser>) -> Json<Value> {
+#[post("/users", format = "application/json", data = "<new_user>")]
+pub fn new_user(conn: DbConn, new_user: Json<NewUser>) -> Result<status::Created<Json<User>>, Status> {
+    User::insert_user(new_user.into_inner(), &conn)
+    .map(|user| user_created(user))
+    .map_err(|error| error_status(error))
+}
+
+#[get("/users/<id>")]
+pub fn find_user(conn: DbConn, id: i32) -> Json<Value> {
     Json(json!({
-        "status": User::insert_user(new_user.into_inner(), &conn),
-        "result": User::get_all_users(&conn).first(),
+        "status": 200,
+        "result": User::get_user_by_id(id, &conn),
     }))
 }
 
-#[post("/getUser", format = "application/json", data = "<user_data>")]
-pub fn find_user(conn: DbConn, user_data: Json<UserData>) -> Json<Value> {
-    Json(json!({
-        "status": 200,
-        "result": User::get_user_by_username(user_data.into_inner(), &conn),
-    }))
+fn error_status(error: Error) -> Status {
+    match error {
+        Error::NotFound => Status::NotFound,
+        _ => Status::InternalServerError
+    }
+}
+
+fn user_created(user: User) -> status::Created<Json<User>> {
+    println!("here final");
+    status::Created(
+        format!("api/v1/users").to_string(),
+        Some(Json(user)))
 }
