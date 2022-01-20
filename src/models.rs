@@ -5,6 +5,7 @@ use diesel;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use chrono::prelude::*;
+use rocket_okapi::JsonSchema;
 #[derive(Identifiable, Serialize, Queryable, Debug, PartialEq)]
 pub struct User {
     pub id: i32,
@@ -13,7 +14,7 @@ pub struct User {
     pub first_name: String,
 }
 
-#[derive(Serialize, Deserialize, Insertable)]
+#[derive(Serialize, Deserialize, Insertable, JsonSchema, AsChangeset)]
 #[table_name = "users"]
 pub struct NewUser {
     pub username: String,
@@ -32,7 +33,7 @@ pub struct Task {
 }
 
 
-#[derive(Serialize, Deserialize, Insertable)]
+#[derive(Serialize, Deserialize, Insertable, AsChangeset)]
 #[table_name = "tasks"]
 pub struct NewTask {
     pub description: String,
@@ -40,7 +41,13 @@ pub struct NewTask {
     pub expiry_date: NaiveDateTime,
 }
 
-#[derive(Serialize, Queryable, Debug, Associations, Insertable, Deserialize)]
+#[derive(Serialize, Deserialize, AsChangeset)]
+#[table_name = "tasks"]
+pub struct TaskStatus {
+    pub status: String,
+}
+
+#[derive(Serialize, Queryable, Debug, Associations, Insertable, Deserialize, JsonSchema)]
 #[belongs_to(User)]
 #[belongs_to(Task)]
 #[table_name = "users_tasks"]
@@ -56,7 +63,6 @@ impl User {
             .load::<User>(conn)
             .expect("error!")
     }
-
     
     pub fn get_user_by_id(id: i32, conn: &PgConnection) -> Vec<User> {
         users::table
@@ -69,6 +75,17 @@ impl User {
         diesel::insert_into(users::table)
             .values(&user)
             .get_result(conn)
+    }
+
+    pub fn update_user(id: i32, user: NewUser, conn: &PgConnection) -> QueryResult<User> {
+        diesel::update(users::table.find(id))
+            .set(&user)
+            .get_result(conn)
+    }
+
+    pub fn delete_user(id: i32, conn: &PgConnection) -> QueryResult<usize> {
+        diesel::delete(users::table.find(id))
+            .execute(conn)
     }
 }
 
@@ -93,6 +110,23 @@ impl Task {
             .get_result(conn)
     }
 
+    pub fn update_task(id: i32, task: NewTask, conn: &PgConnection) -> QueryResult<Task> {
+        diesel::update(tasks::table.find(id))
+            .set(&task)
+            .get_result(conn)
+    }
+
+    pub fn update_task_status(id: i32, task: TaskStatus, conn: &PgConnection) -> QueryResult<Task> {
+        diesel::update(tasks::table.find(id))
+            .set(&task)
+            .get_result(conn)
+    }
+
+    pub fn delete_task(id: i32, conn: &PgConnection) -> QueryResult<usize> {
+        diesel::delete(tasks::table.find(id))
+            .execute(conn)
+    }
+
 }
 
 impl UserTask {
@@ -100,6 +134,13 @@ impl UserTask {
         diesel::insert_into(users_tasks::table)
             .values(&assignment)
             .get_result(conn)
+    }
+
+    pub fn delete_assignment(assignment: UserTask, conn: &PgConnection) -> QueryResult<usize> {
+        diesel::delete(users_tasks::table
+            .filter(users_tasks::user_id.eq(assignment.user_id))
+            .filter(users_tasks::task_id.eq(assignment.task_id)))
+            .execute(conn)
     }
 
     pub fn get_user_tasks(id: i32, conn: &PgConnection) -> Vec<Task> {

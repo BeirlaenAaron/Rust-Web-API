@@ -17,11 +17,23 @@ extern crate serde_json;
 use dotenv::dotenv;
 use routes::*;
 use std::env;
+use rocket_okapi::{routes_with_openapi};
+use rocket_okapi::swagger_ui::{make_swagger_ui, SwaggerUIConfig};
 
 mod db;
 mod models;
 mod routes;
 mod schema;
+
+fn get_docs() -> SwaggerUIConfig {
+    use rocket_okapi::swagger_ui::UrlObject;
+ 
+    SwaggerUIConfig {
+        url: "/api/v1/openapi.json".to_string(),
+        urls: vec![UrlObject::new("Swagger Docs", "/api/v1/openapi.json")],
+        ..Default::default()
+    }
+}
 
 fn rocket() -> rocket::Rocket {
     dotenv().ok();
@@ -31,7 +43,8 @@ fn rocket() -> rocket::Rocket {
     let pool = db::init_pool(database_url);
     rocket::ignite()
         .manage(pool)
-        .mount("/api/v1/", routes![get_users, new_user, find_user, get_tasks, new_task, find_task, find_user_tasks, find_task_users, new_assignment])
+        .mount("/api/v1/", routes_with_openapi![get_users, new_user, find_user, update_user, delete_user, get_tasks, new_task, find_task, update_task, update_task_status, delete_task, find_user_tasks, find_task_users, new_assignment, delete_assignment])
+        .mount("/swagger", make_swagger_ui(&get_docs()))
 }
 
 fn main() {
