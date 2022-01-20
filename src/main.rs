@@ -31,7 +31,7 @@ fn rocket() -> rocket::Rocket {
     let pool = db::init_pool(database_url);
     rocket::ignite()
         .manage(pool)
-        .mount("/api/v1/", routes![get_all, new_user, find_user])
+        .mount("/api/v1/", routes![get_users, new_user, find_user, get_tasks, new_task, find_task, find_user_tasks, find_task_users, new_assignment])
 }
 
 fn main() {
