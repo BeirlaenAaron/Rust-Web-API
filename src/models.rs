@@ -6,7 +6,7 @@ use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use chrono::prelude::*;
 use rocket_okapi::JsonSchema;
-#[derive(Identifiable, Serialize, Queryable, Debug, PartialEq)]
+#[derive(Identifiable, Serialize, Deserialize, Queryable, Debug, PartialEq)]
 pub struct User {
     pub id: i32,
     pub username: String,
@@ -17,12 +17,13 @@ pub struct User {
 #[derive(Serialize, Deserialize, Insertable, JsonSchema, AsChangeset)]
 #[table_name = "users"]
 pub struct NewUser {
+    pub id: Option<i32>,
     pub username: String,
     pub password: String,
     pub first_name: String,
 }
 
-#[derive(Identifiable, Serialize, Queryable, Debug)]
+#[derive(Identifiable, Serialize, Deserialize, Queryable, Debug)]
 pub struct Task {
     pub id: i32,
     pub description: String,
@@ -36,6 +37,7 @@ pub struct Task {
 #[derive(Serialize, Deserialize, Insertable, AsChangeset)]
 #[table_name = "tasks"]
 pub struct NewTask {
+    pub id: Option<i32>,
     pub description: String,
     pub reward: i32,
     pub expiry_date: NaiveDateTime,

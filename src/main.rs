@@ -24,6 +24,7 @@ mod db;
 mod models;
 mod routes;
 mod schema;
+#[cfg(test)] mod tests;
 
 fn get_docs() -> SwaggerUIConfig {
     use rocket_okapi::swagger_ui::UrlObject;
