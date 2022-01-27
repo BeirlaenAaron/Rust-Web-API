@@ -58,6 +58,12 @@ pub struct UserTask {
     pub task_id: i32,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct Credentials {
+   pub username: String,
+   pub password: String
+}
+
 impl User {
     pub fn get_all_users(conn: &PgConnection) -> Vec<User> {
         users::table
@@ -88,6 +94,20 @@ impl User {
     pub fn delete_user(id: i32, conn: &PgConnection) -> QueryResult<usize> {
         diesel::delete(users::table.find(id))
             .execute(conn)
+    }
+
+    pub fn login(username_: String, password_: String, connection: &PgConnection) -> Option<User> {
+        let res = users::table
+            .filter(users::username.eq(username_))
+            .filter(users::password.eq(password_))
+            .order(users::id)
+            .first(connection);
+        match res {
+            Ok(user) => Some(user),
+            Err(_) => {
+                None
+            }
+        }
     }
 }
 

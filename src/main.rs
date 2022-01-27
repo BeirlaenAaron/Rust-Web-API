@@ -24,6 +24,7 @@ mod db;
 mod models;
 mod routes;
 mod schema;
+mod auth;
 #[cfg(test)] mod tests;
 
 fn get_docs() -> SwaggerUIConfig {
@@ -44,7 +45,8 @@ fn rocket() -> rocket::Rocket {
     let pool = db::init_pool(database_url);
     rocket::ignite()
         .manage(pool)
-        .mount("/api/v1/", routes_with_openapi![get_users, new_user, find_user, update_user, delete_user, get_tasks, new_task, find_task, update_task, update_task_status, delete_task, find_user_tasks, find_task_users, new_assignment, delete_assignment])
+        .mount("/api/v1/", routes_with_openapi![get_users, new_user, find_user, update_user, delete_user, get_tasks, new_task, find_task, update_task, update_task_status, delete_task, find_user_tasks, find_task_users, new_assignment, delete_assignment, update_user_unauthorized, delete_user_unauthorized, new_task_unauthorized, update_task_unauthorized, update_task_status_unauthorized, delete_task_unauthorized, new_assignment_unauthorized, delete_assignment_unauthorized])
+        .mount("/auth/", routes![login])
         .mount("/swagger", make_swagger_ui(&get_docs()))
 }
 
