@@ -12,3 +12,14 @@ services:
     image: adminer:4.8.1
     ports:
       - 9999:8080
+
+  api:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    depends_on:
+      - postgresql
+    ports:
+      - 8000:8000
+    env_file:
+      - docker.env
