@@ -1,0 +1,9 @@
+CREATE TABLE tasks
+(
+    id         SERIAL PRIMARY KEY,
+    description   VARCHAR NOT NULL,
+    status   VARCHAR DEFAULT 'UNCOMPLETED' NOT NULL,
+    created_date  TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    expiry_date   TIMESTAMP NOT NULL,
+    reward INT NOT NULL
+)
